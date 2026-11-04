@@ -1,5 +1,6 @@
 """Exercise mirror updates against disposable local Git repositories."""
 
+import re
 import subprocess
 import tempfile
 import tomllib
@@ -21,6 +22,18 @@ class PackagingTests(unittest.TestCase):
             config["tool"]["setuptools"]["packages"]["find"]["include"],
             ["evennia", "evennia.*"],
         )
+
+    def test_engine_ci_only_targets_our_runtime(self):
+        """Do not spend fork CI time on legacy Python or unused database backends."""
+        root = Path(__file__).resolve().parents[2]
+        workflow = (root / ".github/workflows/github_action_test_suite.yml").read_text()
+        jobs = workflow.split("jobs:\n", 1)[1]
+        self.assertEqual(
+            re.findall(r"^  ([a-z][a-z-]+):$", jobs, re.MULTILINE), ["engine-postgresql"]
+        )
+        self.assertNotIn("matrix:", workflow)
+        self.assertIn('python-version: "3.14.8"', workflow)
+        self.assertIn("image: postgres:18.4", workflow)
 
 
 class SyncTests(unittest.TestCase):

@@ -58,8 +58,11 @@ the wheel as a regression check alongside the Git safety tests.
 
 ## Acceptance and game pinning
 
-Upstream engine CI is also enabled for PRs targeting ur-dev. Before adopting a
-downstream revision, require upstream tests, the private game's PostgreSQL/browser/
+The full engine suite runs on **Python 3.14.8 and PostgreSQL 18.4 only** for PRs
+targeting ur-dev. We do not maintain upstream's older-Python, SQLite, or MySQL
+compatibility matrix, and this fork does not publish upstream Docker images.
+Superseded engine-suite runs are canceled automatically. Before adopting a
+downstream revision, require engine tests, the private game's PostgreSQL/browser/
 native-client integration checks, and a dependency security audit. A merged
 maintenance PR is not proof the engine is production-safe.
 
