@@ -20,6 +20,7 @@ jobs:
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           version: "0.13.7"
+          python-version: "3.14.8"
       - name: Build engine without maintenance packages
         run: uv build --wheel --out-dir "$RUNNER_TEMP/evennia-wheel"
       - name: Check wheel contents
@@ -36,3 +37,7 @@ jobs:
           for required in ('evennia/__init__.py', 'evennia/settings_default.py', 'evennia/web/templates/webclient/base.html'):
               assert required in names, required
           PY
+      - name: Export locked dependencies including optional features
+        run: uv export --locked --all-extras --no-dev --no-emit-project --no-hashes --output-file "$RUNNER_TEMP/evennia-audit.txt"
+      - name: Audit every locked dependency without suppressions
+        run: uv tool run --python 3.14.8 --from pip-audit==2.10.1 pip-audit --disable-pip --no-deps --requirement "$RUNNER_TEMP/evennia-audit.txt"
