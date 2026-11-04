@@ -2,10 +2,25 @@
 
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
 from downstream.sync_upstream import sync_main
+
+
+class PackagingTests(unittest.TestCase):
+    """Keep repository maintenance tools out of the installable engine package."""
+
+    def test_only_engine_packages_are_discovered(self):
+        """Explicit discovery prevents flat-layout maintenance namespace collisions."""
+        root = Path(__file__).resolve().parents[2]
+        with (root / "pyproject.toml").open("rb") as stream:
+            config = tomllib.load(stream)
+        self.assertEqual(
+            config["tool"]["setuptools"]["packages"]["find"]["include"],
+            ["evennia", "evennia.*"],
+        )
 
 
 class SyncTests(unittest.TestCase):

@@ -17,3 +17,22 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Test fast-forward-only synchronization
         run: python3 -m unittest discover -s downstream/tests -v
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.13.7"
+      - name: Build engine without maintenance packages
+        run: uv build --wheel --out-dir "$RUNNER_TEMP/evennia-wheel"
+      - name: Check wheel contents
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from zipfile import ZipFile
+          wheels = list((Path(os.environ['RUNNER_TEMP']) / 'evennia-wheel').glob('*.whl'))
+          assert len(wheels) == 1
+          with ZipFile(wheels[0]) as wheel:
+              names = wheel.namelist()
+          assert not any(name.startswith('downstream/') for name in names)
+          for required in ('evennia/__init__.py', 'evennia/settings_default.py', 'evennia/web/templates/webclient/base.html'):
+              assert required in names, required
+          PY

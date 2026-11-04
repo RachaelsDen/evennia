@@ -52,6 +52,9 @@ uv run --no-project python -m downstream.sync_upstream
 The last command **writes origin/main** when it is safely behind upstream. It does
 not open a PR locally. Use it only with the intended fork's origin remote.
 Tests use temporary local repositories and never contact GitHub.
+Package discovery explicitly includes only `evennia` and its subpackages; the
+maintenance tools are not part of the distributed engine. CI builds and inspects
+the wheel as a regression check alongside the Git safety tests.
 
 ## Acceptance and game pinning
 
