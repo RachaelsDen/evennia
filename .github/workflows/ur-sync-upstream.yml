@@ -1,0 +1,43 @@
+name: Mirror upstream main
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-mirror
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'RachaelsDen/evennia' && github.ref == 'refs/heads/ur-dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ur-dev
+          fetch-depth: 0
+      - name: Set official upstream
+        run: git remote add upstream https://github.com/evennia/evennia.git
+      - name: Fast-forward mirror only
+        id: mirror
+        run: python3 -m downstream.sync_upstream
+      - name: Propose integration without merging or updating the game
+        if: steps.mirror.outputs.needs_integration_pr == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count=$(gh pr list --repo "$GITHUB_REPOSITORY" --base ur-dev --head main --state open --json number --jq 'length')
+          if [ "$count" = 0 ]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --base ur-dev --head main --draft \
+              --title 'Sync upstream main into ur-dev' \
+              --body 'The clean main mirror has upstream changes not yet integrated into ur-dev. Review conflicts, run the upstream suite and downstream game integration/security checks, then merge only after review. This does not change any game dependency pin. GitHub may require a maintainer to approve workflows for a bot-created PR.'
+          fi
