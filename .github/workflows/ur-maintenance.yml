@@ -1,0 +1,19 @@
+name: Downstream maintenance
+
+on:
+  pull_request:
+    branches: [ur-dev]
+  push:
+    branches: [ur-dev]
+
+permissions:
+  contents: read
+
+jobs:
+  mirror-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Test fast-forward-only synchronization
+        run: python3 -m unittest discover -s downstream/tests -v

@@ -5,11 +5,11 @@ name: test-suite
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, ur-dev]
     paths-ignore:
       - "docs/**"
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, ur-dev]
 
 jobs:
   test-sqlite:
